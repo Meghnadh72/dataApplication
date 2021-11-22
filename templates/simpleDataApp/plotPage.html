@@ -21,105 +21,123 @@
 <body>
 
 <! -- Child Block, Name : Plot Block -- >
+    <div class="row p-2" id="msgsArea">
+        {%  for msgs in messages %}
+                            <p class="alert {{ info }}" id="msgsBox"> {{ msgs }}</p>
+        {%  endfor %}
+    </div>
 
     <div class="row"> <! -- div1 -->
 
     <! -- Form to sumbit compute fields -- >
-        <form method="POST" action="" enctype="multipart/form-data">
-            {% csrf_token %}
+        <div class="col-md-6">
+                    <form method="POST" action="compute" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <b><h4 class="col-md-4" style="color: white">  Compute </h4></b>
 
-                <div >
-                    <! -- Dataset DropDown -->
 
-                        <div class="col-md-3">
+                            <div >
+                                <! -- Dataset DropDown -->
 
-                            <label for="exampleFormControlSelect1">Choose Dataset</label>
-                                <select class="form-control" id="datasetID" name="dataSet">
+                                    <div class="col-md-6 form-control">
+
+                                        <label for="exampleFormControlSelect1">Choose Dataset</label>
+                                            <select class="form-control" id="datasetID" name="dataSet">
+                                            <option disabled="true" > Select Dataset </option>
+                                                {%  for eachDataset  in dsNames %}
+                                            <option value={{ eachDataset.name }}> {{ eachDataset.name }} </option>
+                                                {% endfor %}
+                                            </select>
+                                    </div>
+
+                                    <! -- Column1 DropDown -->
+                                    <div class="col-md-6 form-control">
+
+                                        <label for="exampleFormControlSelect1">Type Column</label>
+                                        <input type="text" name="columnNameForCompute" class = "form-control col-md-6">
+                                        <small class="form-text text-muted">
+                                                 * Case-Sensitive, Enter only the columns present in the Dataset.
+                                            </small>
+
+                                    </div>
+
+                                    <! -- Column 2 DropDown -->
+                                    <div class="col-md-3 form-control">
+
+                                        <label for="exampleFormControlSelect1">Column 2</label>
+                                        <select class="form-control" id="exampleFormControlSelect1" name="computeMode">
+                                        <option value="0">MIN</option>
+                                        <option value="3">MAX</option>
+                                        </select>
+                                        <small class="form-text text-muted">
+                                                Only MIN or MAX available
+                                            </small>
+
+                                    </div>
+
+                                    <! -- Submit Button -->
+                                    <div style="opacity: 90%" class="col-md-4 form-control">
+                                        <button class="btn btn-success" type="submit">Compute</button>
+                                    </div>
+                            </div>
+                    </form>
+
+
+                    <div style="opacity: 70%" class="alert alert-success" id="computedValueID">
+                        <p>Computed Value :  {{ minOrmax }}</p>
+                    </div>
+        </div>
+
+
+        <div class="col-md-6">
+                    <form method="GET" enctype="multipart/form-data" action="plot">
+                        <b><h4 class="col-md-4" style="color: white">  Plot Graph </h4></b>
+                        <div class="col-md-3 form-control">
+                            <label>Choose Dataset</label>
+
+                                <! -- dataset field -- >
+                                <select class="form-control" id="plotdatasetID" name="dataSetPlot">
                                 <option selected disabled="true"> Select Dataset </option>
                                     {%  for eachDataset  in dsNames %}
                                 <option value={{ eachDataset.name }}> {{ eachDataset.name }} </option>
                                     {% endfor %}
                                 </select>
                         </div>
-
                         <! -- Column1 DropDown -->
-                        <div class="col-md-3">
+                                        <div class="col-md-3 form-control" >
+                                            <label> Column1</label>
+                                            <input type="text" name="column1Plot" class="form-control" id="column1PlotID">
+                                            <small class="form-text text-muted">
+                                                * Case-Sensitive, Enter only the columns present in the Dataset.
+                                            </small>
+                                        </div>
 
-                            <label for="exampleFormControlSelect1">Choose Column</label>
-                            <select class="form-control" id="exampleFormControlSelect1" name="columnChoice">
-                            <option value="0" >Column1</option>
-                            <option value="1" >Column2</option>
-                            </select>
+                                        <! -- Column 2 text -->
+                                        <div class="col-md-3 form-control">
+                                            <label> Column2 </label>
+                                            <input type="text" name="column2Plot" class="form-control" id="column2PlotID">
+                                            <small class="form-text text-muted">
+                                                * Case-Sensitive, Enter only the columns present in the Dataset.
+                                            </small>
+                                        </div>
 
-                        </div>
+                                        <! -- Submit Button -->
+                                        <div style="opacity: 90%"  class="col-md-4 form-control">
+                                            <button onclick=validateCols() class="btn btn-primary " type="submit">Plot</button>
+                                        </div>
 
-                        <! -- Column 2 DropDown -->
-                        <div class="col-md-2">
 
-                            <label for="exampleFormControlSelect1">Column 2</label>
-                            <select class="form-control" id="exampleFormControlSelect1" name="computeMode">
-                            <option value="0">MIN</option>
-                            <option value="3">MAX</option>
-                            </select>
-
-                        </div>
-
-                        <! -- Submit Button -->
-                        <div class="col-md-4">
-                            <button class="btn btn-success" type="submit">Compute</button>
-                        </div>
-                </div>
-        </form>
-    </div>
-
-        <div class="alert alert-success" id="computedValueID">
-            <p> {{ minOrmax }}</p>
+                    </form>
         </div>
-
-<div class="row">
-    <form method="GET" enctype="multipart/form-data" action="plot">
-        <div class="col-md-3 form-control">
-            <label>Choose Dataset</label>
-
-                <! -- dataset field -- >
-                <select class="form-control" id="plotdatasetID" name="dataSetPlot">
-                <option selected disabled="true"> Select Dataset </option>
-                    {%  for eachDataset  in dsNames %}
-                <option value={{ eachDataset.name }}> {{ eachDataset.name }} </option>
-                    {% endfor %}
-                </select>
-        </div>
-        <! -- Column1 DropDown -->
-                        <div class="col-md-3 form-control" >
-                            <label> Column1</label>
-                            <input type="text" name="column1Plot" class="form-control" id="column1PlotID">
-                            <small class="form-text text-muted">
-                                Enter only the columns present in the Dataset.
-                            </small>
-                        </div>
-
-                        <! -- Column 2 text -->
-                        <div class="col-md-3 form-control">
-                            <label> Column2 </label>
-                            <input type="text" name="column2Plot" class="form-control" id="column2PlotID">
-                            <small class="form-text text-muted">
-                                Enter only the columns present in the Dataset.
-                            </small>
-                        </div>
-
-                        <! -- Submit Button -->
-                        <div class="col-md-4 ">
-                            <button class="btn btn-primary" type="submit">Plot</button>
-                        </div>
-
-
-    </form>
 </div>
 
 <! -- PLot Screen Start -- >
 
-    <div class = "row p-3">
-        <div id="graphID" style="width: 80%; height: 80%;">
+    <div class = "row p-5" >
+    {% if plotStatus == "success" %}
+        <h4 class="alert alert-info">Plot against X, Y</h4>
+    {% endif %}
+        <div style="opacity: 84%" class="col-md-8 justify-content-center" id="graphID" style="width: 60%; height: 500px;">
         </div>
     </div>
 
@@ -128,14 +146,26 @@
 
 
 <script>
-    var xyTrace = {
-        Column1: {{ col1Values }},
-        Column2: {{ col2Values }},
-        mode: 'lines+markers',
+    const Col1 = {{ col1Values }};
+    const Col2 = {{ col2Values }};
+    const col2Entry = document.getElementById("column2PlotID");
+    const col1Entry = document.getElementById("column1PlotID");
+
+    /*function validateCols() {
+        if (col2Entry == '' || col1Entry == '') {
+            document.getElementById("msgsBox").innerHTML = "Please enter a valid column Name";
+            document.getElementById("msgsBox").classList.add("alert alert-warning");
+        }
+    } */
+
+    const xyTrace = {
+        x: Col1,
+        y: Col2,
+        mode: 'markers',
         type: 'scatter'
     };
-    alert(xyTrace["Column1"]);
-    var graphdata = [xyTrace];
+
+    const graphdata = [xyTrace];
 
     Plotly.newPlot('graphID', graphdata);
 </script>

@@ -23,27 +23,46 @@
         {% endfor %}
 
 <! -- Upload Form -- !>
-<div class="row">
-    <form action="" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+<div class="row " >
+    <div class="col-md-6">
+                    <form action="" method="POST" enctype="multipart/form-data" style="opacity: 100%">
+                        {% csrf_token %}
 
-    <! -- Upload file Option -->
-    <div class="form-group">
-        <label class = "info"  for="file1"> Upload a file</label>
-        <input class="form-control"  type="file" id="file1" name="file">
-        <small>Only accepts CSV files</small>
+                    <! -- Upload file Option -->
+                    <div class="form-group form-control">
+                        <label class = "info"  for="file1"> Upload a file</label>
+                        <input class="form-control"  type="file" id="file1" name="file">
+                        <small>Only accepts CSV files</small>
+                    </div>
+
+                    <! Dataset Name Field -->
+                        <div class="form-group form-control">
+                            <label>File/Dataset Name</label>
+                            <input class="form-control" type="text" name="datasetName">
+                        </div>
+
+                    <! -- Submit Button -->
+                        <button style="opacity: 50%" class="btn btn-primary form-control" type="submit">Upload</button>
+
+                    </form>
     </div>
 
-    <! Dataset Name Field -->
-        <div class="form-group">
-            <label>File/Dataset Name</label>
-            <input class="form-control" type="text" name="datasetName">
-        </div>
-
-    <! -- Submit Button -->
-        <button class="btn btn-primary" type="submit">Upload</button>
-
-    </form>
+    <div class="col-md-6">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Datasets Uploaded</th>
+                </tr>
+            </thead>
+            {%  for allDatasets in dsNames %}
+                <tr>
+                    <td>
+                        {{ allDatasets.name }}
+                    </td>
+                </tr>
+            {%  endfor %}
+        </table>
+    </div>
 </div>
 
 

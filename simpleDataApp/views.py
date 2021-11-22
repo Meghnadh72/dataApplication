@@ -16,6 +16,7 @@ from sqlalchemy import create_engine
 #   301 = Dataset already exists               #
 #   400 = Successful Connection to DB          #
 #   401 - Connection Failed with Some Error    #
+#   403 - Empty Dataset                        #
 # ###############################################
 
 # Custom Dictionary add Method
@@ -36,7 +37,7 @@ class CustomDictionary(dict):
 
 
 def homeScreen(request):
-    return render(request, "simpleDataApp/navBar.html")
+    return render(request, "simpleDataApp/index.html")
 
 
 def computeScreen(request):
@@ -49,6 +50,8 @@ def computeScreen(request):
 
     else:
         computedValue = computeValue(request)
+        if computedValue == 403:
+            return render(request, "simpleDataApp/plotPage.html", {'info': 'alert-warning', 'dsNames': dataSetQuery})
     return render(request, "simpleDataApp/plotPage.html", {'minOrmax': computedValue,
                   'dsNames': dataSetQuery})
 
@@ -56,13 +59,21 @@ def computeScreen(request):
 def computeValue(request):
     dbconnection = create_engine('sqlite:///db.sqlite3').connect()
     # selectQuery = "SELECT *FROM " + request.POST['dataSet'] + ";"
-    dataSet = pd.read_sql( request.POST['dataSet'], dbconnection)
-    columnChoice = request.POST['columnChoice']
-    columns = list(dataSet.columns.values)
+    try:
+        dataSet = pd.read_sql( request.POST['dataSet'], dbconnection)
+    except KeyError:
+        messages.info(request, "Select Dataset first, in Compute Form")
+        return 403
+    try:
+        columnName = request.POST['columnNameForCompute']
+        columns = list(dataSet[columnName])
+    except KeyError:
+        messages.info(request, "Please Enter a Valid Column Name in Compute Form")
+        return 403
     if int(request.POST['computeMode']) == 0:
-        return min(dataSet[columns[int(columnChoice)]])
+        return min(columns)
     else:
-        return max(dataSet[columns[int(columnChoice)]])
+        return max(columns)
 
 
 def uploadScreen(request):
@@ -75,41 +86,48 @@ def uploadScreen(request):
 
 def uploadCSVFile(request):
     datasetName = request.POST['datasetName']
-    datasetUploaded = DatasetName(name=datasetName)
-    datasetUploaded.save()
-    print(datasetName)
-    uploadedFile = io.StringIO()
-    alertType = {
-        'info': 'alert-success'
-    }
+    # CUSTOM ALERT MESSAGE BASED ON FORM VALIDATION
+    alertType = 'alert-success'
+    dataSetQuery = DatasetName.objects.all()
+    # Validation of the Form Fields - This must be actually be done at the Client Side, but for time being, I Proceeded.
     try:
         uploadedFile = request.FILES['file']
+
+    # EMPTY FILE CASE
     except KeyError:
-        alertType['info'] = "alert-warning"
+        alertType= "alert-warning"
         messages.info(request, 'Dude, Upload a .csv file')
-        return render(request, "simpleDataApp/upload.html", alertType)
+        return render(request, "simpleDataApp/upload.html", {'info':alertType,
+                                                             'dsNames': dataSetQuery})
+
+    # INCORRECT FORMAT CASE
     if not uploadedFile.name.endswith('.csv'):
-        alertType['info'] = "alert-warning"
+        alertType = "alert-warning"
         messages.info(request, 'Dude, Please upload only  .csv File')
-        return render(request, "simpleDataApp/upload.html", alertType)
+        return render(request, "simpleDataApp/upload.html", {'info':alertType,
+                                                             'dsNames': dataSetQuery})
+
+    # SUCCESSFULLY UPLOADED OR NOT CASE
     elif saveUploadedFile(datasetName, request.FILES['file']) == 300:
-        alertType['info'] = "alert-success"
+        alertType = "alert-success"
+        datasetUploaded = DatasetName(name=datasetName)
+        datasetUploaded.save()
         messages.info(request, 'Alright, Dataset ' + str(datasetName) + ' is created/updated.')
     else:
-        alertType['info'] = "alert alert-danger"
+        alertType = "alert alert-danger"
         messages.info(request, 'Oh No, Looks like Dataset ' + str(datasetName) +
                       ' already exists, please use another name')
-    return render(request, "simpleDataApp/upload.html", alertType)
+    return render(request, "simpleDataApp/upload.html", {'info':alertType, 'dsNames': dataSetQuery})
 
 
 def saveUploadedFile(datasetName, csvFile):
+
+    dsNames = DatasetName.objects.all()
+    for name in dsNames:
+        if datasetName == name.name:
+            return 301
+    # USING DATAFRAME TO READ UPLOADED CSV FILE
     dataframeCSV = pd.read_csv(csvFile)
-    datasetQueries = []
-    for index in range(0, len(dataframeCSV.index)):
-        eachRow = list(dataframeCSV.iloc[index])
-        datasetQueries.append(Dataset(column1=float(eachRow[0]), column2=float(eachRow[1])))
-    Dataset.objects.bulk_create(datasetQueries)
-    tableHeaders = list(dataframeCSV.columns.values)
     errorCode, dbconn = getDatabaseConnection()
     try:
         dataframeCSV.to_sql(datasetName, con=dbconn, if_exists='append', index=False)
@@ -129,51 +147,59 @@ def getDatabaseConnection():
 
 
 def plotGraph(request):
-    dsNameForGraph = request.GET['dataSetPlot']
-    col1ForGraph = request.GET['column1Plot']
-    col2ForGraph = request.GET['column2Plot']
-    firstCol25Val, secondCol25Val = get25ValOfDataset(dsNameForGraph, col2ForGraph, col1ForGraph)
-    print(firstCol25Val)
     dataSetQuery = DatasetName.objects.all()
-    return render(request, "simpleDataApp/plotPage.html", {"col1Values" : firstCol25Val,
+    try:
+        dsNameForGraph = request.GET['dataSetPlot']
+    except KeyError:
+        messages.info(request, "Choose a Dataset from the list in Plot Graph Form")
+        return render(request, "simpleDataApp/plotPage.html", {'info': 'alert-warning','dsNames': dataSetQuery})
+    try:
+        col1ForGraph = request.GET['column1Plot']
+    except KeyError:
+        messages.info(request, "Please enter a valid Column1 in the Plot Graph Form")
+        return render(request, "simpleDataApp/plotPage.html", {'info': 'alert-warning',
+                                                               'dsNames': dataSetQuery})
+    try:
+        col2ForGraph = request.GET['column2Plot']
+    except KeyError:
+        messages.info(request, "Please enter a valid Column2 in the Plot Graph Form")
+        return render(request, "simpleDataApp/plotPage.html", {'info': 'alert-warning',
+                                                               'dsNames': dataSetQuery})
+    firstCol25Val, secondCol25Val = get25ValOfDataset(dsNameForGraph, col2ForGraph, col1ForGraph,request)
+    if firstCol25Val == 4 and secondCol25Val == 4:
+        messages.info(request, "PLease enter a valid Column Name in Plot Graph")
+        return render(request, "simpleDataApp/plotPage.html", {'info': "alert-warning",
+                                                               'dsNames': dataSetQuery})
+    for eachVal in range(0, len(firstCol25Val)):
+        firstCol25Val[eachVal] = float(firstCol25Val[eachVal])
+        secondCol25Val[eachVal] = float(secondCol25Val[eachVal])
+
+    return render(request, "simpleDataApp/plotPage.html", {"col1Values": firstCol25Val,
                                                            "col2Values": secondCol25Val,
-                                                           "dsNames" : dataSetQuery})
+                                                           "dsNames": dataSetQuery,
+                                                           "plotStatus" : "success"})
 
 
-def get25ValOfDataset(datasetName, col2Name, col1Name):
+# A separate Method allows us to increase the values from 25 to more in Future.
+def get25ValOfDataset(datasetName, col2Name, col1Name,request):
     errorCode, dbconnection = getDatabaseConnection()
     selectQuery = "SELECT *FROM " + datasetName + ";"
     dataSet = pd.read_sql(selectQuery, dbconnection)
     print(dataSet)
-    col1Values = list(dataSet[col1Name].head(25))
-    col2Values = list(dataSet[col2Name].head(25))
+    try:
+        col1Values = list(dataSet[col1Name].head(25))
+        col2Values = list(dataSet[col2Name].head(25))
+    except KeyError:
+        return 4, 4
     print(type(col2Values))
     return col1Values, col2Values
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     """
-    print(secondCol25Val)                                                                            createQuery = "CREATE TABLE [IF NOT EXISTS] " + str(datasetName) + " ( "
+    print(secondCol25Val)                                                                           
+    createQuery = "CREATE TABLE [IF NOT EXISTS] " + str(datasetName) + " ( "
 
     # Assigning the Columns headers from the CSV file to Query String
     for eachHeader in range(0, len(tableHeaders)):

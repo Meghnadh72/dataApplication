@@ -11,28 +11,30 @@
 
     <! -- Plotly CDN Dependency URL -- >
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
-
+{% load static %}
 </head>
-<body>
+<body style = "background-image: url({%  static "/imgFiles/bgMainPage.jpg" %})">
 <! -- Navigation Bar -- >
 
 <div class="row">
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light" style="color:white; background-image: url({% static "/imgFiles/blueNavBar.png" %}) ">
   <div class="container-fluid">
-    <a class="navbar-brand" href="https://www.xvectorlabs.com">xVectorLabs</a>
+    <a class="navbar-brand" href="https://www.xvectorlabs.com" >
+        <img src="{%  static "/imgFiles/vectorLogo.svg" %}" >
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0" style="color: white">
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="/dataApp/homePage">Home</a>
+          <a class="nav-link" aria-current="page" href="/dataApp/homePage" style="color: white">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="dataset">Upload CSV</a>
+          <a style="color: white" class="nav-link" href="dataset">Upload CSV</a>
         </li>
           <li class="nav-item">
-              <a class="nav-link" href="compute"> Plot </a>
+              <a class="nav-link" style="color: white" href="compute"> Plot </a>
           </li>
 
 
