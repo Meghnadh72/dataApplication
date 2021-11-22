@@ -1,0 +1,145 @@
+{% extends 'simpleDataApp/navBar.html' %}
+{% block body %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{%  load static %}
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <! -- Bootstrap Dependencies -- >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+
+
+
+
+
+</head>
+<body>
+
+<! -- Child Block, Name : Plot Block -- >
+
+    <div class="row"> <! -- div1 -->
+
+    <! -- Form to sumbit compute fields -- >
+        <form method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+
+                <div >
+                    <! -- Dataset DropDown -->
+
+                        <div class="col-md-3">
+
+                            <label for="exampleFormControlSelect1">Choose Dataset</label>
+                                <select class="form-control" id="datasetID" name="dataSet">
+                                <option selected disabled="true"> Select Dataset </option>
+                                    {%  for eachDataset  in dsNames %}
+                                <option value={{ eachDataset.name }}> {{ eachDataset.name }} </option>
+                                    {% endfor %}
+                                </select>
+                        </div>
+
+                        <! -- Column1 DropDown -->
+                        <div class="col-md-3">
+
+                            <label for="exampleFormControlSelect1">Choose Column</label>
+                            <select class="form-control" id="exampleFormControlSelect1" name="columnChoice">
+                            <option value="0" >Column1</option>
+                            <option value="1" >Column2</option>
+                            </select>
+
+                        </div>
+
+                        <! -- Column 2 DropDown -->
+                        <div class="col-md-2">
+
+                            <label for="exampleFormControlSelect1">Column 2</label>
+                            <select class="form-control" id="exampleFormControlSelect1" name="computeMode">
+                            <option value="0">MIN</option>
+                            <option value="3">MAX</option>
+                            </select>
+
+                        </div>
+
+                        <! -- Submit Button -->
+                        <div class="col-md-4">
+                            <button class="btn btn-success" type="submit">Compute</button>
+                        </div>
+                </div>
+        </form>
+    </div>
+
+        <div class="alert alert-success" id="computedValueID">
+            <p> {{ minOrmax }}</p>
+        </div>
+
+<div class="row">
+    <form method="GET" enctype="multipart/form-data" action="plot">
+        <div class="col-md-3 form-control">
+            <label>Choose Dataset</label>
+
+                <! -- dataset field -- >
+                <select class="form-control" id="plotdatasetID" name="dataSetPlot">
+                <option selected disabled="true"> Select Dataset </option>
+                    {%  for eachDataset  in dsNames %}
+                <option value={{ eachDataset.name }}> {{ eachDataset.name }} </option>
+                    {% endfor %}
+                </select>
+        </div>
+        <! -- Column1 DropDown -->
+                        <div class="col-md-3 form-control" >
+                            <label> Column1</label>
+                            <input type="text" name="column1Plot" class="form-control" id="column1PlotID">
+                            <small class="form-text text-muted">
+                                Enter only the columns present in the Dataset.
+                            </small>
+                        </div>
+
+                        <! -- Column 2 text -->
+                        <div class="col-md-3 form-control">
+                            <label> Column2 </label>
+                            <input type="text" name="column2Plot" class="form-control" id="column2PlotID">
+                            <small class="form-text text-muted">
+                                Enter only the columns present in the Dataset.
+                            </small>
+                        </div>
+
+                        <! -- Submit Button -->
+                        <div class="col-md-4 ">
+                            <button class="btn btn-primary" type="submit">Plot</button>
+                        </div>
+
+
+    </form>
+</div>
+
+<! -- PLot Screen Start -- >
+
+    <div class = "row p-3">
+        <div id="graphID" style="width: 80%; height: 80%;">
+        </div>
+    </div>
+
+
+
+
+
+<script>
+    var xyTrace = {
+        Column1: {{ col1Values }},
+        Column2: {{ col2Values }},
+        mode: 'lines+markers',
+        type: 'scatter'
+    };
+    alert(xyTrace["Column1"]);
+    var graphdata = [xyTrace];
+
+    Plotly.newPlot('graphID', graphdata);
+</script>
+
+{%  endblock %}
+</body>
+</html>
