@@ -171,8 +171,13 @@ def plotGraph(request):
         return render(request, "simpleDataApp/plotPage.html", {'info': "alert-warning",
                                                                'dsNames': dataSetQuery})
     for eachVal in range(0, len(firstCol25Val)):
-        firstCol25Val[eachVal] = float(firstCol25Val[eachVal])
-        secondCol25Val[eachVal] = float(secondCol25Val[eachVal])
+        try:
+            firstCol25Val[eachVal] = float(firstCol25Val[eachVal])
+            secondCol25Val[eachVal] = float(secondCol25Val[eachVal])
+        except ValueError:
+            messages.info(request, "Selected Columns are not Valid to Plot a Graph !")
+            return render(request, "simpleDataApp/plotPage.html", {'info': "alert-danger",
+                                                                   'dsNames': dataSetQuery})
 
     return render(request, "simpleDataApp/plotPage.html", {"col1Values": firstCol25Val,
                                                            "col2Values": secondCol25Val,
